@@ -37,11 +37,28 @@ export const MediaItem = IDL.Record({
 });
 export const DisplayName = IDL.Text;
 export const Time = IDL.Int;
+export const MediaKind = IDL.Variant({
+  'audio' : IDL.Null,
+  'video' : IDL.Null,
+  'image' : IDL.Null,
+});
+export const Attachment = IDL.Record({
+  'blob' : ExternalBlob,
+  'kind' : MediaKind,
+  'caption' : IDL.Opt(IDL.Text),
+});
 export const ChatMessage = IDL.Record({
   'id' : IDL.Nat,
   'displayName' : DisplayName,
-  'text' : IDL.Text,
+  'text' : IDL.Opt(IDL.Text),
   'sender' : IDL.Principal,
+  'timestamp' : Time,
+  'attachment' : IDL.Opt(Attachment),
+});
+export const Reaction = IDL.Record({
+  'displayName' : DisplayName,
+  'sender' : IDL.Principal,
+  'emoji' : IDL.Text,
   'timestamp' : Time,
 });
 export const UserProfile = IDL.Record({
@@ -90,21 +107,47 @@ export const idlService = IDL.Service({
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'clearReactions' : IDL.Func([], [], []),
   'deleteMediaItem' : IDL.Func([IDL.Nat], [], []),
   'deleteMessage' : IDL.Func([IDL.Nat], [], []),
   'getAllMediaItems' : IDL.Func([], [IDL.Vec(MediaItem)], ['query']),
   'getAllMessages' : IDL.Func([], [IDL.Vec(ChatMessage)], ['query']),
+  'getAllReactions' : IDL.Func([], [IDL.Vec(Reaction)], ['query']),
   'getAllUsers' : IDL.Func([], [IDL.Vec(UserProfile)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getHandRaises' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Bool))],
+      ['query'],
+    ),
   'getMediaItem' : IDL.Func([IDL.Nat], [MediaItem], ['query']),
+  'getMutedChatUsers' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
+  'getMutedReactionUsers' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
   'getPlaybackState' : IDL.Func([], [PlaybackState], ['query']),
+  'getReactionCounts' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))],
+      ['query'],
+    ),
   'getUserProfile' : IDL.Func([IDL.Principal], [UserProfile], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'lowerHand' : IDL.Func([IDL.Principal], [], []),
+  'muteUserFromChat' : IDL.Func([IDL.Principal], [], []),
+  'muteUserFromReactions' : IDL.Func([IDL.Principal], [], []),
   'registerUser' : IDL.Func([DisplayName], [], []),
   'removeUser' : IDL.Func([IDL.Principal], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'sendMediaMessage' : IDL.Func(
+      [IDL.Text, IDL.Opt(IDL.Text), ExternalBlob, MediaKind],
+      [IDL.Nat],
+      [],
+    ),
   'sendMessage' : IDL.Func([DisplayName, IDL.Text], [IDL.Nat], []),
+  'sendReaction' : IDL.Func([IDL.Text, DisplayName], [], []),
+  'toggleHandRaise' : IDL.Func([DisplayName], [], []),
+  'unmuteUserFromChat' : IDL.Func([IDL.Principal], [], []),
+  'unmuteUserFromReactions' : IDL.Func([IDL.Principal], [], []),
   'updatePlaybackState' : IDL.Func([IDL.Nat, Seconds, IDL.Bool], [], []),
 });
 
@@ -140,11 +183,28 @@ export const idlFactory = ({ IDL }) => {
   });
   const DisplayName = IDL.Text;
   const Time = IDL.Int;
+  const MediaKind = IDL.Variant({
+    'audio' : IDL.Null,
+    'video' : IDL.Null,
+    'image' : IDL.Null,
+  });
+  const Attachment = IDL.Record({
+    'blob' : ExternalBlob,
+    'kind' : MediaKind,
+    'caption' : IDL.Opt(IDL.Text),
+  });
   const ChatMessage = IDL.Record({
     'id' : IDL.Nat,
     'displayName' : DisplayName,
-    'text' : IDL.Text,
+    'text' : IDL.Opt(IDL.Text),
     'sender' : IDL.Principal,
+    'timestamp' : Time,
+    'attachment' : IDL.Opt(Attachment),
+  });
+  const Reaction = IDL.Record({
+    'displayName' : DisplayName,
+    'sender' : IDL.Principal,
+    'emoji' : IDL.Text,
     'timestamp' : Time,
   });
   const UserProfile = IDL.Record({
@@ -193,21 +253,47 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'clearReactions' : IDL.Func([], [], []),
     'deleteMediaItem' : IDL.Func([IDL.Nat], [], []),
     'deleteMessage' : IDL.Func([IDL.Nat], [], []),
     'getAllMediaItems' : IDL.Func([], [IDL.Vec(MediaItem)], ['query']),
     'getAllMessages' : IDL.Func([], [IDL.Vec(ChatMessage)], ['query']),
+    'getAllReactions' : IDL.Func([], [IDL.Vec(Reaction)], ['query']),
     'getAllUsers' : IDL.Func([], [IDL.Vec(UserProfile)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getHandRaises' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Bool))],
+        ['query'],
+      ),
     'getMediaItem' : IDL.Func([IDL.Nat], [MediaItem], ['query']),
+    'getMutedChatUsers' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
+    'getMutedReactionUsers' : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
     'getPlaybackState' : IDL.Func([], [PlaybackState], ['query']),
+    'getReactionCounts' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))],
+        ['query'],
+      ),
     'getUserProfile' : IDL.Func([IDL.Principal], [UserProfile], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'lowerHand' : IDL.Func([IDL.Principal], [], []),
+    'muteUserFromChat' : IDL.Func([IDL.Principal], [], []),
+    'muteUserFromReactions' : IDL.Func([IDL.Principal], [], []),
     'registerUser' : IDL.Func([DisplayName], [], []),
     'removeUser' : IDL.Func([IDL.Principal], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'sendMediaMessage' : IDL.Func(
+        [IDL.Text, IDL.Opt(IDL.Text), ExternalBlob, MediaKind],
+        [IDL.Nat],
+        [],
+      ),
     'sendMessage' : IDL.Func([DisplayName, IDL.Text], [IDL.Nat], []),
+    'sendReaction' : IDL.Func([IDL.Text, DisplayName], [], []),
+    'toggleHandRaise' : IDL.Func([DisplayName], [], []),
+    'unmuteUserFromChat' : IDL.Func([IDL.Principal], [], []),
+    'unmuteUserFromReactions' : IDL.Func([IDL.Principal], [], []),
     'updatePlaybackState' : IDL.Func([IDL.Nat, Seconds, IDL.Bool], [], []),
   });
 };

@@ -10,12 +10,18 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface Attachment {
+  'blob' : ExternalBlob,
+  'kind' : MediaKind,
+  'caption' : [] | [string],
+}
 export interface ChatMessage {
   'id' : bigint,
   'displayName' : DisplayName,
-  'text' : string,
+  'text' : [] | [string],
   'sender' : Principal,
   'timestamp' : Time,
+  'attachment' : [] | [Attachment],
 }
 export type DisplayName = string;
 export type ExternalBlob = Uint8Array;
@@ -25,6 +31,9 @@ export interface MediaItem {
   'metadata' : [] | [string],
   'mediaType' : MediaType,
 }
+export type MediaKind = { 'audio' : null } |
+  { 'video' : null } |
+  { 'image' : null };
 export type MediaType = { 'uploadedFile' : ExternalBlob } |
   { 'externalUrl' : string };
 export interface PlaybackState {
@@ -32,6 +41,12 @@ export interface PlaybackState {
   'isPlaying' : boolean,
   'position' : Seconds,
   'currentMediaId' : bigint,
+}
+export interface Reaction {
+  'displayName' : DisplayName,
+  'sender' : Principal,
+  'emoji' : string,
+  'timestamp' : Time,
 }
 export type Seconds = bigint;
 export type Time = bigint;
@@ -72,21 +87,38 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addMediaItem' : ActorMethod<[string, MediaType, [] | [string]], bigint>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'clearReactions' : ActorMethod<[], undefined>,
   'deleteMediaItem' : ActorMethod<[bigint], undefined>,
   'deleteMessage' : ActorMethod<[bigint], undefined>,
   'getAllMediaItems' : ActorMethod<[], Array<MediaItem>>,
   'getAllMessages' : ActorMethod<[], Array<ChatMessage>>,
+  'getAllReactions' : ActorMethod<[], Array<Reaction>>,
   'getAllUsers' : ActorMethod<[], Array<UserProfile>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getHandRaises' : ActorMethod<[], Array<[Principal, boolean]>>,
   'getMediaItem' : ActorMethod<[bigint], MediaItem>,
+  'getMutedChatUsers' : ActorMethod<[], Array<Principal>>,
+  'getMutedReactionUsers' : ActorMethod<[], Array<Principal>>,
   'getPlaybackState' : ActorMethod<[], PlaybackState>,
+  'getReactionCounts' : ActorMethod<[], Array<[string, bigint]>>,
   'getUserProfile' : ActorMethod<[Principal], UserProfile>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'lowerHand' : ActorMethod<[Principal], undefined>,
+  'muteUserFromChat' : ActorMethod<[Principal], undefined>,
+  'muteUserFromReactions' : ActorMethod<[Principal], undefined>,
   'registerUser' : ActorMethod<[DisplayName], undefined>,
   'removeUser' : ActorMethod<[Principal], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'sendMediaMessage' : ActorMethod<
+    [string, [] | [string], ExternalBlob, MediaKind],
+    bigint
+  >,
   'sendMessage' : ActorMethod<[DisplayName, string], bigint>,
+  'sendReaction' : ActorMethod<[string, DisplayName], undefined>,
+  'toggleHandRaise' : ActorMethod<[DisplayName], undefined>,
+  'unmuteUserFromChat' : ActorMethod<[Principal], undefined>,
+  'unmuteUserFromReactions' : ActorMethod<[Principal], undefined>,
   'updatePlaybackState' : ActorMethod<[bigint, Seconds, boolean], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;

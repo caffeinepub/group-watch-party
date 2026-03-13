@@ -1,34 +1,37 @@
 # Group Watch Party
 
 ## Current State
-The project has the base Caffeine scaffold with no backend Motoko code and no App.tsx. The previous build failed before generating any application code.
+A real-time group watch party app with:
+- Internet Identity authentication and user registration
+- External video URL playback (YouTube, Vimeo, MP4, etc.)
+- Live text chat (polling-based)
+- Emoji reactions with floating animations, hand-raise, reaction counters
+- Admin panel with 5 tabs: watch party, media library, users, chat, reactions
+- Blob storage component already included in backend
+- Chat messages are text-only with fields: id, sender, displayName, text, timestamp
 
 ## Requested Changes (Diff)
 
 ### Add
-- Role-based authorization: Super Admin (s73590363@gmail.com principal-based) and Viewer roles
-- Media management: upload photos and videos via blob storage, add external video URLs (YouTube, etc.)
-- Watch party system: admin controls playback (play/pause/seek/current media), all viewers see synced state
-- Live group chat: all authenticated users can send messages, visible in real-time (polling)
-- Super Admin panel: manage media library (upload/delete), control playback, manage users, moderate chat
-- Viewer UI: watch synced media, participate in chat (read + send messages)
+- Image upload in chat (any user can upload and share an image in the chat)
+- Video upload in chat (any user can upload and share a video file in the chat)
+- Voice message recording and sharing in chat (record, preview, send as inline playable audio)
+- Media message type extending ChatMessage: supports text, image blob, video blob, audio blob
+- Media gallery tab in chat showing all shared images/videos from chat history
 
 ### Modify
-- Nothing (new build)
+- `ChatMessage` type to include optional media attachment (blobId referencing blob-storage, mediaKind: image|video|audio)
+- `sendMessage` backend function or new `sendMediaMessage` function to accept blob attachment info
+- `ChatPanel` component: add toolbar with image upload button, video upload button, microphone record button, file preview before send, and inline rendering of image/video/audio in messages
 
 ### Remove
-- Nothing
+- Nothing removed
 
 ## Implementation Plan
-1. Select `authorization` and `blob-storage` components
-2. Generate Motoko backend with:
-   - User role management (admin check by principal text match)
-   - Media items: stored files (blob refs) and external URLs with metadata
-   - Watch party session state: currentMediaId, playbackPosition, isPlaying, lastUpdated
-   - Chat messages: sender, text, timestamp
-   - CRUD for media (admin only), update session state (admin only), send chat message (any authed user), read all (public/authed)
-3. Build frontend:
-   - Internet Identity login
-   - Admin view: media library with upload/add URL, playback controls, user list, chat moderation
-   - Viewer view: synced media player (polls session state), chat panel
-   - Responsive layout with real-time feel via polling
+1. Update backend `ChatMessage` type to include optional `attachment: ?{ blobId: Text; kind: #image | #video | #audio }`
+2. Add `sendMediaMessage` backend function accepting displayName, text (optional caption), blobId, and media kind
+3. Frontend: add upload helpers using blob-storage SDK to upload file and get blobId
+4. Update `ChatPanel` to show upload/record toolbar below the text input
+5. Voice recording: use MediaRecorder API to record audio, encode to blob, upload via blob-storage, then call sendMediaMessage
+6. Inline rendering: images show as thumbnails, videos show as small inline player, audio shows as compact audio player
+7. Add `useGetAllMessages` to refetch after media message is sent
